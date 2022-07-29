@@ -1,3 +1,7 @@
+import { FilmsAPIService } from "./films-api-service.js";
+import moment from "moment";
+
+
 export class FilmsDataStatsGenerator {
 
     constructor(filmsApiService) {
@@ -11,6 +15,19 @@ export class FilmsDataStatsGenerator {
     */
     async getBestRatedFilm(directorName) {
         //TODO Implement...
+        try {
+            const films = await this.filmsApiService.getFilms();
+            const bestRating = Math.max(...films.filter((obj) => obj.directorName === directorName).map((obj) => obj.rating));
+            const bestRatedFilm = films.filter((obj) => obj.rating === bestRating && obj.directorName === directorName);
+            
+            if (bestRatedFilm.length === 0) {
+                return null;
+            } else {
+                return bestRatedFilm[0].name;
+            }            
+        } catch (error) {
+            console.error(error.message);
+        }
     }
 
     /**
@@ -18,6 +35,19 @@ export class FilmsDataStatsGenerator {
     */
    async getDirectorWithMostFilms() {
         //TODO Implement...
+        try {
+            const films = await this.filmsApiService.getFilms();
+            const numberOfFilms = {};
+            films.forEach((obj) => {
+                obj.directorName in numberOfFilms ? numberOfFilms[obj.directorName]++ : numberOfFilms[obj.directorName] = 1;
+            });
+            const mostFilms = Math.max(...Object.values(numberOfFilms));
+            const director = Object.keys(numberOfFilms).find((key) => numberOfFilms[key] === mostFilms);
+
+            return director;
+        } catch (error) {
+            console.error(error.message);
+        }
     }
 
     /**
@@ -26,6 +56,25 @@ export class FilmsDataStatsGenerator {
     */
    async getAverageRating(directorName) {
         //TODO Implement...
+        try {
+            const films = await this.filmsApiService.getFilms();
+            const filmsByDirector = films.filter((obj) => obj.directorName === directorName);
+
+            if (filmsByDirector.length === 0) {
+                return null;
+            }
+
+            let avgRating = filmsByDirector.map((obj) => obj.rating)
+                                            .reduce((prev, curr) =>  {
+                                                    return prev + curr;
+                                                 }, 0)/filmsByDirector.length;
+            avgRating = Math.round(avgRating * 10)/10;
+            
+            return avgRating;
+            
+        } catch (error) {
+            console.error(error.message);
+        }
     }
 
     /**
@@ -64,6 +113,34 @@ export class FilmsDataStatsGenerator {
     */
    async getShortestNumberOfDaysBetweenFilmReleases(directorName) {
         //TODO Implement...
+
+        try {
+            const films = await this.filmsApiService.getFilms();
+            const filmsByDirector = films.filter((obj) => obj.directorName === directorName);
+
+            if (filmsByDirector.length === 0) {
+                return null;
+            } else if (filmsByDirector === 1) {
+                return 0;
+            }
+
+            let min = Infinity;
+
+            filmsByDirector.map((obj) => obj.releaseDate)
+                                        .sort((date1, date2) => date1.localeCompare(date2))
+                                        .forEach((curr, i, arr) => {
+                                            if (i < arr.length-1) {
+                                                var first = moment(curr, "YYYY-MM-DD");
+                                                var second = moment(arr[i+1], "YYYY-MM-DD");
+
+                                                min = Math.min(min, moment.duration(second.diff(first)).asDays());
+                                            }
+                                        });
+            return min;
+
+        } catch (error) {
+            console.error(error.message);
+        }
     }   
     
 }
