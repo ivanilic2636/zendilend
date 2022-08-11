@@ -1,7 +1,4 @@
-import { FilmsAPIService } from "./films-api-service.js";
-import moment from "moment";
-
-
+import { FilmsAPIService } from "./films-api-service";
 export class FilmsDataStatsGenerator {
 
     constructor(filmsApiService) {
@@ -15,19 +12,23 @@ export class FilmsDataStatsGenerator {
     */
     async getBestRatedFilm(directorName) {
         //TODO Implement...
-        try {
-            const films = await this.filmsApiService.getFilms();
-            const bestRating = Math.max(...films.filter((obj) => obj.directorName === directorName).map((obj) => obj.rating));
-            const bestRatedFilm = films.filter((obj) => obj.rating === bestRating && obj.directorName === directorName);
-            
-            if (bestRatedFilm.length === 0) {
-                return null;
-            } else {
-                return bestRatedFilm[0].name;
-            }            
-        } catch (error) {
-            console.error(error.message);
+        let rating = 0;
+        let bestRated;
+        const films = await this.filmsApiService.getFilms();
+        let directorsFilms = films.filter((film) => {
+            return film.directorName === directorName;
+        })
+        if(!directorsFilms){
+            return null
         }
+    
+        directorsFilms.forEach(e => {
+            if(e.rating > rating){
+                rating = e.rating;
+                bestRated = e
+            }
+         })
+        return bestRated.name
     }
 
     /**
@@ -35,19 +36,15 @@ export class FilmsDataStatsGenerator {
     */
    async getDirectorWithMostFilms() {
         //TODO Implement...
-        try {
-            const films = await this.filmsApiService.getFilms();
-            const numberOfFilms = {};
-            films.forEach((obj) => {
-                obj.directorName in numberOfFilms ? numberOfFilms[obj.directorName]++ : numberOfFilms[obj.directorName] = 1;
-            });
-            const mostFilms = Math.max(...Object.values(numberOfFilms));
-            const director = Object.keys(numberOfFilms).find((key) => numberOfFilms[key] === mostFilms);
-
-            return director;
-        } catch (error) {
-            console.error(error.message);
-        }
+        let directorsFilmsCount = {}
+        const films = await this.filmsApiService.getFilms();
+        films.forEach((film) => {
+            directorsFilmsCount[film.directorName] ? directorsFilmsCount[film.directorName]++ : directorsFilmsCount[film.directorName] = 1;
+        })
+        let countMostFilms = Math.max(...Object.values(directorsFilmsCount))
+        let mostFilms =  Object.keys(directorsFilmsCount).find(key => directorsFilmsCount[key] === countMostFilms);
+        
+        return mostFilms;
     }
 
     /**
@@ -56,25 +53,15 @@ export class FilmsDataStatsGenerator {
     */
    async getAverageRating(directorName) {
         //TODO Implement...
-        try {
-            const films = await this.filmsApiService.getFilms();
-            const filmsByDirector = films.filter((obj) => obj.directorName === directorName);
-
-            if (filmsByDirector.length === 0) {
-                return null;
-            }
-
-            let avgRating = filmsByDirector.map((obj) => obj.rating)
-                                            .reduce((prev, curr) =>  {
-                                                    return prev + curr;
-                                                 }, 0)/filmsByDirector.length;
-            avgRating = Math.round(avgRating * 10)/10;
-            
-            return avgRating;
-            
-        } catch (error) {
-            console.error(error.message);
-        }
+        const films = await this.filmsApiService.getFilms();
+        let directorsFilms = films.filter((film) => {
+            return film.directorName === directorName;
+        })
+        let ratings = 0;
+        directorsFilms.forEach(film => {
+            ratings +=film.rating
+        })
+        return Math.round((ratings/directorsFilms.length) * 10) / 10;
     }
 
     /**
@@ -113,34 +100,30 @@ export class FilmsDataStatsGenerator {
     */
    async getShortestNumberOfDaysBetweenFilmReleases(directorName) {
         //TODO Implement...
-
-        try {
-            const films = await this.filmsApiService.getFilms();
-            const filmsByDirector = films.filter((obj) => obj.directorName === directorName);
-
-            if (filmsByDirector.length === 0) {
-                return null;
-            } else if (filmsByDirector === 1) {
-                return 0;
-            }
-
-            let min = Infinity;
-
-            filmsByDirector.map((obj) => obj.releaseDate)
-                                        .sort((date1, date2) => date1.localeCompare(date2))
-                                        .forEach((curr, i, arr) => {
-                                            if (i < arr.length-1) {
-                                                var first = moment(curr, "YYYY-MM-DD");
-                                                var second = moment(arr[i+1], "YYYY-MM-DD");
-
-                                                min = Math.min(min, moment.duration(second.diff(first)).asDays());
-                                            }
-                                        });
-            return min;
-
-        } catch (error) {
-            console.error(error.message);
+        const films = await this.filmsApiService.getFilms();
+        let shortestDaysBetweenFilms = [];
+        let directorsFilms = films.filter((film) => {
+            return film.directorName === directorName;
+        })
+        if(!directorsFilms) {
+            return null;
+        }else if (directorsFilms.length == 1){
+            return 0;
         }
+    let datedFilms = directorsFilms.map(film => {
+            return {...film, releaseDate : new Date(film.releaseDate)};
+        })
+        const sortedFilms = datedFilms.sort((objA, objB) => Number(objA.releaseDate) - Number(objB.releaseDate));
+        sortedFilms.forEach((film,index,arr) => {
+            if( index < arr.length - 1 ){
+                let current = film.releaseDate;
+                let next = sortedFilms[index + 1].releaseDate;
+                let differenceTime = Math.abs(current - next);
+                let differenceDays = differenceTime / (1000*3600*24);
+                shortestDaysBetweenFilms.push(differenceDays);
+            }
+        })
+        return Math.min(...shortestDaysBetweenFilms);
     }   
     
 }
