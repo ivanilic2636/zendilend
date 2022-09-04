@@ -12,8 +12,6 @@ export class FilmsDataStatsGenerator {
     */
     async getBestRatedFilm(directorName) {
         //TODO Implement...
-        let rating = 0;
-        let bestRated;
         const films = await this.filmsApiService.getFilms();
         let directorsFilms = films.filter((film) => {
             return film.directorName === directorName;
@@ -22,13 +20,10 @@ export class FilmsDataStatsGenerator {
             return null
         }
     
-        directorsFilms.forEach(e => {
-            if(e.rating > rating){
-                rating = e.rating;
-                bestRated = e
-            }
-         })
-        return bestRated.name
+        directorsFilms.sort((filmA, filmB) => {
+            return filmB.rating - filmA.rating
+        })
+        return directorsFilms[0].name
     }
 
     /**
@@ -41,10 +36,9 @@ export class FilmsDataStatsGenerator {
         films.forEach((film) => {
             directorsFilmsCount[film.directorName] ? directorsFilmsCount[film.directorName]++ : directorsFilmsCount[film.directorName] = 1;
         })
-        let countMostFilms = Math.max(...Object.values(directorsFilmsCount))
-        let mostFilms =  Object.keys(directorsFilmsCount).find(key => directorsFilmsCount[key] === countMostFilms);
+        const mostFilmsSorted = Object.entries(directorsFilmsCount).sort((x, y) => y[1] - x[1])[0];
         
-        return mostFilms;
+        return mostFilmsSorted[0];
     }
 
     /**
@@ -54,12 +48,12 @@ export class FilmsDataStatsGenerator {
    async getAverageRating(directorName) {
         //TODO Implement...
         const films = await this.filmsApiService.getFilms();
-        let directorsFilms = films.filter((film) => {
-            return film.directorName === directorName;
-        })
         let ratings = 0;
-        directorsFilms.forEach(film => {
-            ratings +=film.rating
+        let directorsFilms = films.filter((film) => {
+            if(film.directorName === directorName){
+                ratings += film.rating;
+            }
+            return film.directorName === directorName;
         })
         return Math.round((ratings/directorsFilms.length) * 10) / 10;
     }
@@ -110,7 +104,7 @@ export class FilmsDataStatsGenerator {
         }else if (directorsFilms.length == 1){
             return 0;
         }
-    let datedFilms = directorsFilms.map(film => {
+        let datedFilms = directorsFilms.map(film => {
             return {...film, releaseDate : new Date(film.releaseDate)};
         })
         const sortedFilms = datedFilms.sort((objA, objB) => Number(objA.releaseDate) - Number(objB.releaseDate));

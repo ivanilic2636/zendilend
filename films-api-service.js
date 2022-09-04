@@ -18,4 +18,5 @@ export class FilmsAPIService {
           } catch (error) {
             return error.message;
           }
+  }
 }
