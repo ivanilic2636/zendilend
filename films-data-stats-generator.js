@@ -104,10 +104,7 @@ export class FilmsDataStatsGenerator {
         }else if (directorsFilms.length == 1){
             return 0;
         }
-        let datedFilms = directorsFilms.map(film => {
-            return {...film, releaseDate : new Date(film.releaseDate)};
-        })
-        const sortedFilms = datedFilms.sort((objA, objB) => Number(objA.releaseDate) - Number(objB.releaseDate));
+        const sortedFilms = directorsFilms.sort((x, y) => Number(new Date(x.releaseDate)) - Number(new Date(y.releaseDate)));
         sortedFilms.forEach((film,index,arr) => {
             if( index < arr.length - 1 ){
                 let current = film.releaseDate;
