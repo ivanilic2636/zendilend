@@ -107,8 +107,8 @@ export class FilmsDataStatsGenerator {
         const sortedFilms = directorsFilms.sort((x, y) => Number(new Date(x.releaseDate)) - Number(new Date(y.releaseDate)));
         sortedFilms.forEach((film,index,arr) => {
             if( index < arr.length - 1 ){
-                let current = film.releaseDate;
-                let next = sortedFilms[index + 1].releaseDate;
+                let current = new Date(film.releaseDate);
+                let next = new Date(sortedFilms[index + 1].releaseDate);
                 let differenceTime = Math.abs(current - next);
                 let differenceDays = differenceTime / (1000*3600*24);
                 shortestDaysBetweenFilms.push(differenceDays);
