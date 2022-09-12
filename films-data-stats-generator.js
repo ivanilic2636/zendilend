@@ -95,8 +95,7 @@ export class FilmsDataStatsGenerator {
    async getShortestNumberOfDaysBetweenFilmReleases(directorName) {
         //TODO Implement...
         const films = await this.filmsApiService.getFilms();
-        let shortestDaysBetweenFilms = [];
-        let directorsFilms = films.filter((film) => {
+         let directorsFilms = films.filter((film) => {
             return film.directorName === directorName;
         })
         if(!directorsFilms) {
@@ -111,10 +110,15 @@ export class FilmsDataStatsGenerator {
                 let next = new Date(sortedFilms[index + 1].releaseDate);
                 let differenceTime = Math.abs(current - next);
                 let differenceDays = differenceTime / (1000*3600*24);
-                shortestDaysBetweenFilms.push(differenceDays);
+                if(!sortedFilms.shortestDaysBetweenFilms){
+                    sortedFilms.shortestDaysBetweenFilms = differenceDays;
+                }
+                if(sortedFilms.shortestDaysBetweenFilms > differenceDays){
+                    sortedFilms.shortestDaysBetweenFilms = differenceDays;
+                }
             }
         })
-        return Math.min(...shortestDaysBetweenFilms);
+        return sortedFilms.shortestDaysBetweenFilms;
     }   
     
 }
