@@ -36,9 +36,15 @@ export class FilmsDataStatsGenerator {
         films.forEach((film) => {
             directorsFilmsCount[film.directorName] ? directorsFilmsCount[film.directorName]++ : directorsFilmsCount[film.directorName] = 1;
         })
-        const mostFilmsSorted = Object.entries(directorsFilmsCount).sort((x, y) => y[1] - x[1])[0];
-        
-        return mostFilmsSorted[0];
+
+        let maxFilms = Math.max(...Object.values(directorsFilmsCount));
+        let directorWithMostFilms = Object.keys(directorsFilmsCount).find(key => directorsFilmsCount[key] === maxFilms);
+
+        return directorWithMostFilms;
+
+        //STARI NACIN
+        // const mostFilmsSorted = Object.entries(directorsFilmsCount).sort((x, y) => y[1] - x[1])[0];
+        // return mostFilmsSorted[0];
     }
 
     /**
